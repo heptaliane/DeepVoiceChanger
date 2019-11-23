@@ -1,0 +1,27 @@
+{
+    "audio": {
+        "channel": 1,
+        "sample_rate": 44100
+    },
+    "fft": {
+        "clipping_threshold": 1000,
+        "max_allowed_silent_frames": 20,
+        "min_allowed_spectrum_length": 120,
+        "window_size": 512,
+        "window_overwrap_rate": 0.25
+    },
+    "dataset":{
+        "org": {
+            "dirname": "data/original",
+            "ext": ""
+        },
+        "norm": {
+            "dirname": "data/normalized",
+            "ext": ".wav"
+        },
+        "fft": {
+            "dirname": "data/fft",
+            "ext": ".npz"
+        }
+    }
+}
