@@ -7,7 +7,7 @@
         "clipping_threshold": 1000,
         "max_allowed_silent_frames": 20,
         "min_allowed_spectrum_length": 120,
-        "window_size": 512,
+        "window_size": 510,
         "window_overwrap_rate": 0.25
     },
     "dataset":{

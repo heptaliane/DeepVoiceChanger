@@ -31,14 +31,14 @@ def compute_fourier_features(signal, clipping_threshold):
     signal = np.fft.fft(signal)
 
     # Ignore negative frequency
-    f = np.fft.fftfreq(len(signal))
-    signal = signal[f >= 0]
+    signal = signal[:len(signal) // 2 + 1]
 
     def feature_transform(x):
         v = np.abs(x)
         v[v < clipping_threshold] = clipping_threshold
         v = np.log(v) - np.log(clipping_threshold)
-        v[x < 0] = -v[x < 0]
+        negative_mask = x < 0
+        v[negative_mask] = -v[negative_mask]
         return v
 
     # Compute Fourier features
