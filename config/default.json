@@ -4,7 +4,7 @@
         "sample_rate": 44100
     },
     "fft": {
-        "clipping_threshold": 1000,
+        "clipping_threshold": 1,
         "max_allowed_silent_frames": 20,
         "min_allowed_spectrum_length": 120,
         "window_size": 510,

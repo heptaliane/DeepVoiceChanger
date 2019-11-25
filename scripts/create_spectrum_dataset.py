@@ -25,27 +25,16 @@ def parse_arguments(argv):
     return args
 
 
-def compute_fourier_features(signal, clipping_threshold):
+def fourier_transform(signal):
     # Fourier transform
-    signal = signal * np.hamming(len(signal))
+    signal = signal * np.hanning(len(signal))
+    # signal = signal * np.hamming(len(signal))
     signal = np.fft.fft(signal)
 
     # Ignore negative frequency
     signal = signal[:len(signal) // 2 + 1]
 
-    def feature_transform(x):
-        v = np.abs(x)
-        v[v < clipping_threshold] = clipping_threshold
-        v = np.log(v) - np.log(clipping_threshold)
-        negative_mask = x < 0
-        v[negative_mask] = -v[negative_mask]
-        return v
-
-    # Compute Fourier features
-    sig_real = feature_transform(signal.real)
-    sig_imag = feature_transform(signal.imag)
-
-    return (sig_real, sig_imag)
+    return (signal.real, signal.imag)
 
 
 def create_audio_spectrogram(audio, window_size, window_overwrap_rate,
@@ -53,19 +42,30 @@ def create_audio_spectrogram(audio, window_size, window_overwrap_rate,
     # Convert audio data to numpy
     signal = audio.to_numpy()
 
+    # Normalize
+    signal = signal / np.max(signal)
+
     # Framing settings
     stride = int(window_size * window_overwrap_rate)
-    n_frames = len(signal) // stride - int(1 / window_overwrap_rate) + 1
+    n_frames = (len(signal) - window_size) // stride + 1
 
     # Generate spectrum
     spectrum = list()
     for i in range(n_frames):
         src = signal[stride * i: stride * i + window_size]
-        spectrum.append(compute_fourier_features(src, clipping_threshold))
+        spectrum.append(fourier_transform(src))
     spectrum = np.asarray(spectrum, dtype=np.float32)
 
+    # Create spectrum features
+    v = np.abs(spectrum)
+    v[v < clipping_threshold] = clipping_threshold
+    v = np.log(v) - np.log(clipping_threshold)
+    negative_mask = spectrum < 0
+    v[negative_mask] = -v[negative_mask]
+
     # Normalize
-    spectrum = spectrum / np.max(np.abs(spectrum))
+    # NOTE: Maximum value is half of the number of points in frames
+    spectrum = v / np.log(window_size * 0.5)
 
     # Order: real/imaginally, frequency, time
     spectrum = spectrum.transpose(1, 2, 0)
@@ -85,6 +85,7 @@ def split_with_slient_sequence(spectrum, split_threshold):
         elif cnt > 0:
             if cnt >= split_threshold:
                 chunks.append(spectrum[:, :, offset: i - cnt])
+                offset = i
             cnt = 0
 
     # Append last block
@@ -129,8 +130,8 @@ def main(argv):
         for spectrum in spectrums:
             dst_path = dst_dir.name_to_path('%06d' % idx)
             np.savez_compressed(dst_path, spectrum=spectrum)
-            logger.info('Save "%s" (length: %4d)',
-                        dst_path, spectrum.shape[2])
+            logger.info('Save "%s" (length: %4d; from "%s")',
+                        dst_path, spectrum.shape[2], name)
             idx += 1
 
 

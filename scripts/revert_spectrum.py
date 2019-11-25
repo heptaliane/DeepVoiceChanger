@@ -4,6 +4,7 @@ import os
 import sys
 import argparse
 import array
+import math
 
 import numpy as np
 
@@ -30,26 +31,39 @@ def parse_arguments(argv):
     return args
 
 
-def spectrum_to_wave(spectrum, window_overwrap_rate, amplitude):
+def spectrum_to_wave(spectrum, window_overwrap_rate):
     # Get Fourier values
+    amplitude = np.log(spectrum.shape[1] - 1)
     signals = np.exp(np.abs(spectrum * amplitude)) - 1.0
     negative_mask = spectrum < 0
     signals[negative_mask] = -signals[negative_mask]
     signals = signals[0] + signals[1] * 1.0j
     signals = np.concatenate((signals, signals[1:-1][::-1]), axis=0)
 
+    # Create window
+    window_size = signals.shape[0]
+    stride = int(window_size * window_overwrap_rate)
+    hamming = np.hamming(window_size)
+    n_frames = math.ceil(window_size / stride)
+    window = np.hamming(window_size)
+    for i in range(1, n_frames):
+        window[:window_size - stride * i] += hamming[stride * i:] ** 2
+        window[stride * i:] += hamming[:window_size - stride * i] ** 2
+    window = hamming / window
+
     # Invert Fourier transform
     signals = [np.fft.ifft(signals[:, i]) for i in range(signals.shape[1])]
 
     # Overwrap
-    fsize = len(signals[0])
-    stride = int(fsize * window_overwrap_rate)
-    length = stride * (len(signals) - 1) + fsize
+    length = stride * (len(signals) - 1) + window_size
     wave = np.zeros((length))
 
     # Construct wave
     for i in range(len(signals)):
-        wave[stride * i: stride * i + fsize] += signals[i].real
+        wave[stride * i: stride * i + window_size] += signals[i].imag * window
+
+    # Tune up the volume
+    wave = wave / np.max(wave) * 32000
 
     return wave
 
@@ -77,13 +91,12 @@ def main(argv):
     # Parameters
     window_overwrap_rate = config['fft']['window_overwrap_rate']
     samp_rate = config['audio']['sample_rate']
-    amplitude = 14.6
 
     # Load data
     spectrum = np.load(args.input).get('spectrum')
 
     # Invert Fourier transform
-    wave = spectrum_to_wave(spectrum, window_overwrap_rate, amplitude)
+    wave = spectrum_to_wave(spectrum, window_overwrap_rate)
 
     # Output file
     save_audio_from_numpy(args.output, wave, samp_rate)
