@@ -8,6 +8,7 @@ import numpy as np
 
 from common import read_wave
 from config import load_config
+import stft
 
 # Logging
 from logging import getLogger, INFO
@@ -42,33 +43,14 @@ def create_audio_spectrogram(audio, window_size, window_overwrap_rate,
     # Convert audio data to numpy
     signal = audio.to_numpy()
 
-    # Normalize
-    signal = signal / np.max(signal)
-
     # Framing settings
     stride = int(window_size * window_overwrap_rate)
-    n_frames = (len(signal) - window_size) // stride + 1
 
-    # Generate spectrum
-    spectrum = list()
-    for i in range(n_frames):
-        src = signal[stride * i: stride * i + window_size]
-        spectrum.append(fourier_transform(src))
-    spectrum = np.asarray(spectrum, dtype=np.float32)
+    # Short time Fourier transform
+    spectrum = stft.stft(signal, window_size, stride)
 
-    # Create spectrum features
-    v = np.abs(spectrum)
-    v[v < clipping_threshold] = clipping_threshold
-    v = np.log(v) - np.log(clipping_threshold)
-    negative_mask = spectrum < 0
-    v[negative_mask] = -v[negative_mask]
-
-    # Normalize
-    # NOTE: Maximum value is half of the number of points in frames
-    spectrum = v / np.log(window_size * 0.5)
-
-    # Order: real/imaginally, frequency, time
-    spectrum = spectrum.transpose(1, 2, 0)
+    # Compute Fourier feature
+    spectrum = stft.to_feature(spectrum, clipping_threshold)
 
     return spectrum
 
