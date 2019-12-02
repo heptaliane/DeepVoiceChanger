@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+import os
+
 from common import read_json
 from dataset import DatasetDirectory
 
@@ -25,8 +27,14 @@ def _merge_dict(d1, d2):
 
 
 def _load_dataset_config(dataset_config):
-    return {k:DatasetDirectory(v['dirname'], v['ext'])
-            for k, v in dataset_config.items()}
+    org = DatasetDirectory(dataset_config['org']['dirname'])
+    labels = org.names
+    dataset_dir = dict()
+    for k, v in dataset_config.items():
+        dataset_dir[k] = [DatasetDirectory(os.path.join(v['dirname'], l),
+                          v['ext']) for l in labels]
+
+    return dataset_dir
 
 
 def load_config(config_path):

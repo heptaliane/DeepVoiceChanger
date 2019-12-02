@@ -86,35 +86,37 @@ def main(argv):
     config = load_config(args.config)
 
     # Parameters
-    src_dir = config['dataset'].get('norm')
-    dst_dir = config['dataset'].get('fft')
+    src_dirs = config['dataset'].get('norm')
+    dst_dirs = config['dataset'].get('fft')
     window_size = config['fft'].get('window_size')
     window_overwrap_rate = config['fft'].get('window_overwrap_rate')
     clipping_threshold = config['fft'].get('clipping_threshold')
     split_threshold = config['fft'].get('max_allowed_silent_frames')
     min_length = config['fft'].get('min_allowed_spectrum_length')
 
-    # names
-    names = src_dir.names
+    # For each labels
+    for src_dir, dst_dir in zip(src_dirs, dst_dirs):
+        # names
+        names = src_dir.names
 
-    # Create spectrum dataset
-    idx = 0
-    for name in names:
-        audio = read_wave(src_dir.name_to_path(name))
-        spectrum = create_audio_spectrogram(audio, window_size,
-                                            window_overwrap_rate,
-                                            clipping_threshold)
-        spectrums = split_with_slient_sequence(spectrum, split_threshold)
+        # Create spectrum dataset
+        idx = 0
+        for name in names:
+            audio = read_wave(src_dir.name_to_path(name))
+            spectrum = create_audio_spectrogram(audio, window_size,
+                                                window_overwrap_rate,
+                                                clipping_threshold)
+            spectrums = split_with_slient_sequence(spectrum, split_threshold)
 
-        spectrums = [s for s in spectrums if s.shape[2] >= min_length]
+            spectrums = [s for s in spectrums if s.shape[2] >= min_length]
 
-        # For each sequence
-        for spectrum in spectrums:
-            dst_path = dst_dir.name_to_path('%06d' % idx)
-            np.savez_compressed(dst_path, spectrum=spectrum)
-            logger.info('Save "%s" (length: %4d; from "%s")',
-                        dst_path, spectrum.shape[2], name)
-            idx += 1
+            # For each sequence
+            for spectrum in spectrums:
+                dst_path = dst_dir.name_to_path('%06d' % idx)
+                np.savez_compressed(dst_path, spectrum=spectrum)
+                logger.info('Save "%s" (length: %4d; from "%s")',
+                            dst_path, spectrum.shape[2], name)
+                idx += 1
 
 
 if __name__ == '__main__':

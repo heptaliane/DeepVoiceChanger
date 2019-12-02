@@ -61,7 +61,7 @@ def to_feature(spectrum, clipping):
     return x
 
 
-def from_feature(feature, clipping):
+def from_feature(feature, clipping=1.0):
     x = feature * np.log(feature.shape[1] * 0.5)
     x = np.exp(np.abs(x)) * clipping
     neg_mask = feature < 0

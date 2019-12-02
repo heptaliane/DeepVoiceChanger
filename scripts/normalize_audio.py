@@ -53,19 +53,20 @@ def main(argv):
     config = load_config(args.config)
 
     # Import parameters
-    src_dir = config['dataset'].get('org')
-    dst_dir = config['dataset'].get('norm')
+    src_dirs = config['dataset'].get('org')
+    dst_dirs = config['dataset'].get('norm')
     samp_rate = config['audio'].get('sample_rate')
     channel = config['audio'].get('channel')
 
-    # Collect source file name
-    names = src_dir.names
+    for src_dir, dst_dir in zip(src_dirs, dst_dirs):
+        # Collect source file name
+        names = src_dir.names
 
-    # Normalize audio
-    for name in names:
-        src_path = src_dir.name_to_path(name)
-        dst_path = dst_dir.name_to_path(name)
-        normalize_audio(src_path, dst_path, samp_rate, channel)
+        # Normalize audio
+        for name in names:
+            src_path = src_dir.name_to_path(name)
+            dst_path = dst_dir.name_to_path(name)
+            normalize_audio(src_path, dst_path, samp_rate, channel)
 
 
 if __name__ == '__main__':

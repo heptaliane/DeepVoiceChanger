@@ -17,6 +17,7 @@
         },
         "norm": {
             "dirname": "data/normalized",
+            "type": "directory",
             "ext": ".wav"
         },
         "fft": {
