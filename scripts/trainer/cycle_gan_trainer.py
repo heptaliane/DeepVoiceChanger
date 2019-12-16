@@ -132,7 +132,10 @@ class CycleGanTrainer():
         }
 
         # Predoction result
-        pred = dict(a=ab, b=ba)
+        pred = {
+            '%s_to_%s' % (self.label_a, self.label_b): ab,
+            '%s_to_%s' % (self.label_b, self.label_a): ba,
+        }
 
         return (pred, loss)
 

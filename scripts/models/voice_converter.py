@@ -44,9 +44,9 @@ class FullyConnectedLayer(nn.Module):
 
 
 class VCGenerator(nn.Module):
-    def __init__(self, n_channel=24, n_blocks=6):
+    def __init__(self, n_channels=24, n_blocks=6):
         self.downsample = nn.Sequential(
-            VCConv1d(n_channel, 128, 15, padding=7, norm=False),
+            VCConv1d(n_channels, 128, 15, padding=7, norm=False),
             VCConv1d(128, 256, 5, stride=2, padding=2),
             VCConv1d(256, 512, 5, stride=2, padding=2)
         )
@@ -55,7 +55,7 @@ class VCGenerator(nn.Module):
         self.upsample = nn.Sequential(
             VCConv1d(512, 1024, 5, padding=2, upsample=2),
             VCConv1d(256, 512, 5, padding=2, upsample=2),
-            VCConv1d(128, n_channel, 15, padding=7, norm=False, glu=False)
+            VCConv1d(128, n_channels, 15, padding=7, norm=False, glu=False)
         )
 
     def forward(self, x):

@@ -7,7 +7,8 @@
         "clipping_threshold": 1,
         "max_allowed_silent_frames": 20,
         "min_allowed_spectrum_length": 120,
-        "window_size": 510,
+        "spectrum_frame_size": 80,
+        "window_size": 512,
         "window_overwrap_rate": 0.25
     },
     "dataset":{
@@ -23,6 +24,29 @@
         "fft": {
             "dirname": "data/fft",
             "ext": ".npz"
+        }
+    },
+    "loader": {
+        "batch_size": 1,
+        "num_workers": 2,
+        "pin_memory": true
+    },
+    "model": {
+        "common": {
+            "use_comp": true,
+            "frame_size": 80
+        },
+        "generator": {
+            "archtecture": "vc_generator",
+            "n_blocks": 6,
+            "lr": 1e-6,
+            "pretrained_path": ""
+        },
+        "discriminator": {
+            "archtecture": "vc_discriminator",
+            "n_blocks": 4,
+            "lr": 1e-4,
+            "pretrained_path": ""
         }
     }
 }
