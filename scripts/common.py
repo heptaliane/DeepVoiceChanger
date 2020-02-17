@@ -2,6 +2,7 @@
 """ Common modules """
 import json
 import wave
+import array
 import shutil
 
 import numpy as np
@@ -29,10 +30,10 @@ class AudioData():
         elif self.sample_width == 4:
             dtype = np.int32
         else:
-            raise ValueError('Sample width %d cannot converted to numpy' % \
+            raise ValueError('Sample width %d cannot converted to numpy' %
                              self.sample_width)
 
-        return np.frombuffer(self.raw, np.int16)
+        return np.frombuffer(self.raw, dtype)
 
 
 def read_wave(path):
@@ -52,6 +53,20 @@ def write_wave(path, audio):
         f.setsampwidth(audio.sample_width)
         f.setframerate(audio.sample_rate)
         f.writeframesraw(audio.raw)
+
+
+def write_wave_from_numpy(path, wave, samp_rate):
+    # Sample rate = 2
+    wave = wave.astype(np.int16)
+
+    # Convert to byte array
+    raw = array.array('h', wave).tobytes()
+
+    # Create audio object
+    audio = AudioData(raw, samp_rate, 2, 1)
+
+    # Save as a .wav file
+    write_wave(path, audio)
 
 
 def read_json(path):
