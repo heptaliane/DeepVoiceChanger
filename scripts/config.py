@@ -21,7 +21,7 @@ def _merge_dict(d1, d2):
         if isinstance(d1[k], dict):
             _merge_dict(d1[k], d2[k])
         elif isinstance(d1[k], list):
-            _merge_list(l1[k], l2[k])
+            _merge_list(d1[k], d2[k])
         else:
             d1[k] = d2[k]
 
@@ -41,15 +41,14 @@ def load_config(config_path):
     # Load configuration files
     configs = list()
     while True:
-        conf = read_json(config_path)
-        configs.append(conf)
-        if 'inherit' in conf:
-            config_path = conf['inherit']
+        config = read_json(config_path)
+        if 'inherit' in config:
+            config_path = config.pop('inherit')
+            configs.append(config)
         else:
             break
 
     # Merge configurations
-    config = configs.pop()
     for ex_conf in configs[::-1]:
         _merge_dict(config, ex_conf)
 
