@@ -8,6 +8,7 @@ torch = "*"
 torchaudio = "*"
 click = "*"
 rainbow-logging-handler = "*"
+numpy = "*"
 
 [dev-packages]
 black = "*"
